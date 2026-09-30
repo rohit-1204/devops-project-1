@@ -42,6 +42,15 @@ describe("Todo App", () => {
 
     expect(getTodos).toHaveBeenCalledTimes(1);
   });
+  test("does not show error alert when there is no error", async () => {
+  render(<App />);
+
+  await waitFor(() => {
+    expect(screen.getByText("Todo App")).toBeInTheDocument();
+  });
+
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();  
+  });
 
   test("loads existing todos", async () => {
     getTodos.mockResolvedValue([
