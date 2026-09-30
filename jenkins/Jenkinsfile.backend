@@ -1,1 +1,94 @@
-Jenkinsfile.backend
+pipeline {
+
+    agent any
+
+    environment {
+        AWS_REGION = 'ap-south-1'
+        AWS_ACCOUNT_ID = credentials('aws-account-id')
+
+        ECR_REPOSITORY = 'todo-backend'
+
+        IMAGE_TAG = "${BUILD_NUMBER}"
+
+        EKS_CLUSTER = 'todo-eks-cluster'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build \
+                      -t $ECR_REPOSITORY:$IMAGE_TAG \
+                      ./backend
+                '''
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                sh '''
+                    aws ecr get-login-password \
+                      --region $AWS_REGION | \
+                    docker login \
+                      --username AWS \
+                      --password-stdin \
+                      $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                '''
+            }
+        }
+
+        stage('Tag Image') {
+            steps {
+                sh '''
+                    docker tag \
+                      $ECR_REPOSITORY:$IMAGE_TAG \
+                      $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                sh '''
+                    docker push \
+                      $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                sh '''
+                    aws eks update-kubeconfig \
+                      --region $AWS_REGION \
+                      --name $EKS_CLUSTER
+
+                    kubectl set image deployment/todo-backend \
+                      backend=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG \
+                      -n todo-app
+
+                    kubectl rollout status \
+                      deployment/todo-backend \
+                      -n todo-app
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Backend deployed successfully to EKS!'
+        }
+
+        failure {
+            echo 'Backend deployment failed!'
+        }
+    }
+}
