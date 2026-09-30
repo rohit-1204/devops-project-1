@@ -1,4 +1,3 @@
-```jsx
 import { useEffect, useState } from "react";
 import TodoForm from "./components/TodoForm";
 import TodoList from "./components/TodoList";
@@ -116,4 +115,3 @@ function App() {
 }
 
 export default App;
-```
