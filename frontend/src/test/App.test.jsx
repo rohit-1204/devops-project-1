@@ -1,14 +1,87 @@
-import { render, screen } from "@testing-library/react";
+```jsx
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 import App from "../App";
 
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo
+} from "../api/todoApi";
+
+// Mock API functions
+vi.mock("../api/todoApi", () => ({
+  getTodos: vi.fn(),
+  createTodo: vi.fn(),
+  updateTodo: vi.fn(),
+  deleteTodo: vi.fn()
+}));
+
 describe("Todo App", () => {
-  test("renders application", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Default API response
+    getTodos.mockResolvedValue([]);
+  });
+
+  test("renders application", async () => {
     render(<App />);
 
-    expect(screen.getByText("Todo App")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter todo")).toBeInTheDocument();
-    expect(screen.getByText("No todos found.")).toBeInTheDocument();
+    expect(screen.getByText("Loading todos...")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByPlaceholderText("Enter todo")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("No todos found.")
+    ).toBeInTheDocument();
+
+    expect(getTodos).toHaveBeenCalledTimes(1);
+  });
+
+  test("loads existing todos from backend", async () => {
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn Docker",
+        completed: false
+      },
+      {
+        id: 2,
+        text: "Learn Kubernetes",
+        completed: true
+      }
+    ]);
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Learn Docker")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Learn Kubernetes")
+    ).toBeInTheDocument();
+
+    expect(getTodos).toHaveBeenCalledTimes(1);
+  });
+
+  test("handles get todos API error", async () => {
+    getTodos.mockRejectedValue(new Error("Backend unavailable"));
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent("Unable to load todos");
   });
 
   test("does not add empty todo", async () => {
@@ -16,9 +89,19 @@ describe("Todo App", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
 
-    expect(screen.getByText("No todos found.")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Add" })
+    );
+
+    expect(
+      screen.getByText("No todos found.")
+    ).toBeInTheDocument();
+
+    expect(createTodo).not.toHaveBeenCalled();
   });
 
   test("does not add whitespace todo", async () => {
@@ -26,102 +109,293 @@ describe("Todo App", () => {
 
     render(<App />);
 
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
+
     const input = screen.getByLabelText("todo input");
 
     await user.type(input, "   ");
-    await user.click(screen.getByRole("button", { name: "Add" }));
 
-    expect(screen.getByText("No todos found.")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Add" })
+    );
+
+    expect(
+      screen.getByText("No todos found.")
+    ).toBeInTheDocument();
+
+    expect(createTodo).not.toHaveBeenCalled();
   });
 
-  test("adds todo", async () => {
+  test("adds todo using backend API", async () => {
     const user = userEvent.setup();
 
+    createTodo.mockResolvedValue({
+      id: 1,
+      text: "Learn Docker",
+      completed: false
+    });
+
     render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
 
     const input = screen.getByLabelText("todo input");
 
     await user.type(input, "Learn Docker");
-    await user.click(screen.getByRole("button", { name: "Add" }));
 
-    expect(screen.getByText("Learn Docker")).toBeInTheDocument();
-    expect(screen.queryByText("No todos found.")).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Add" })
+    );
+
+    expect(
+      await screen.findByText("Learn Docker")
+    ).toBeInTheDocument();
+
+    expect(createTodo).toHaveBeenCalledWith("Learn Docker");
   });
 
-  test("trims todo text", async () => {
+  test("handles create todo API error", async () => {
     const user = userEvent.setup();
 
+    createTodo.mockRejectedValue(
+      new Error("Create todo failed")
+    );
+
     render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
+
+    const input = screen.getByLabelText("todo input");
+
+    await user.type(input, "Learn Docker");
+
+    await user.click(
+      screen.getByRole("button", { name: "Add" })
+    );
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent("Unable to add todo");
+  });
+
+  test("trims todo text before sending to backend", async () => {
+    const user = userEvent.setup();
+
+    createTodo.mockResolvedValue({
+      id: 1,
+      text: "Learn Kubernetes",
+      completed: false
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+    });
 
     const input = screen.getByLabelText("todo input");
 
     await user.type(input, "  Learn Kubernetes  ");
-    await user.click(screen.getByRole("button", { name: "Add" }));
 
-    expect(screen.getByText("Learn Kubernetes")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Add" })
+    );
+
+    expect(createTodo).toHaveBeenCalledWith(
+      "Learn Kubernetes"
+    );
   });
 
-  test("completes todo", async () => {
+  test("completes todo using backend API", async () => {
     const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn AWS",
+        completed: false
+      }
+    ]);
+
+    updateTodo.mockResolvedValue({
+      id: 1,
+      text: "Learn AWS",
+      completed: true
+    });
 
     render(<App />);
 
-    await user.type(
-      screen.getByLabelText("todo input"),
-      "Learn AWS"
-    );
-
-    await user.click(screen.getByRole("button", { name: "Add" }));
-
-    const checkbox = screen.getByRole("checkbox");
+    const checkbox = await screen.findByRole("checkbox");
 
     expect(checkbox).not.toBeChecked();
 
     await user.click(checkbox);
 
-    expect(checkbox).toBeChecked();
+    await waitFor(() => {
+      expect(checkbox).toBeChecked();
+    });
+
+    expect(updateTodo).toHaveBeenCalledWith(1, {
+      completed: true
+    });
   });
 
-  test("uncompletes todo", async () => {
+  test("uncompletes todo using backend API", async () => {
     const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn Terraform",
+        completed: true
+      }
+    ]);
+
+    updateTodo.mockResolvedValue({
+      id: 1,
+      text: "Learn Terraform",
+      completed: false
+    });
 
     render(<App />);
 
-    await user.type(
-      screen.getByLabelText("todo input"),
-      "Learn Terraform"
-    );
+    const checkbox = await screen.findByRole("checkbox");
 
-    await user.click(screen.getByRole("button", { name: "Add" }));
-
-    const checkbox = screen.getByRole("checkbox");
-
-    await user.click(checkbox);
     expect(checkbox).toBeChecked();
 
     await user.click(checkbox);
-    expect(checkbox).not.toBeChecked();
+
+    await waitFor(() => {
+      expect(checkbox).not.toBeChecked();
+    });
+
+    expect(updateTodo).toHaveBeenCalledWith(1, {
+      completed: false
+    });
   });
 
-  test("deletes todo", async () => {
+  test("handles update todo API error", async () => {
     const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn AWS",
+        completed: false
+      }
+    ]);
+
+    updateTodo.mockRejectedValue(
+      new Error("Update failed")
+    );
 
     render(<App />);
 
-    await user.type(
-      screen.getByLabelText("todo input"),
-      "Learn Jenkins"
-    );
+    const checkbox = await screen.findByRole("checkbox");
 
-    await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(checkbox);
 
-    expect(screen.getByText("Learn Jenkins")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent("Unable to update todo");
+  });
+
+  test("does nothing when todo is not found during toggle", async () => {
+    const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([]);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText("No todos found.")).toBeInTheDocument();
+    });
+
+    expect(updateTodo).not.toHaveBeenCalled();
+
+    // No checkbox means there is nothing to toggle.
+    expect(
+      screen.queryByRole("checkbox")
+    ).not.toBeInTheDocument();
+  });
+
+  test("deletes todo using backend API", async () => {
+    const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn Jenkins",
+        completed: false
+      }
+    ]);
+
+    deleteTodo.mockResolvedValue({
+      message: "Todo deleted successfully"
+    });
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Learn Jenkins")
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Delete" })
     );
 
-    expect(screen.queryByText("Learn Jenkins")).not.toBeInTheDocument();
-    expect(screen.getByText("No todos found.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Learn Jenkins")
+      ).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText("No todos found.")
+    ).toBeInTheDocument();
+
+    expect(deleteTodo).toHaveBeenCalledWith(1);
+  });
+
+  test("handles delete todo API error", async () => {
+    const user = userEvent.setup();
+
+    getTodos.mockResolvedValue([
+      {
+        id: 1,
+        text: "Learn Jenkins",
+        completed: false
+      }
+    ]);
+
+    deleteTodo.mockRejectedValue(
+      new Error("Delete failed")
+    );
+
+    render(<App />);
+
+    expect(
+      await screen.findByText("Learn Jenkins")
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Delete" })
+    );
+
+    expect(
+      await screen.findByRole("alert")
+    ).toHaveTextContent("Unable to delete todo");
+
+    // Todo should still be present because API failed
+    expect(
+      screen.getByText("Learn Jenkins")
+    ).toBeInTheDocument();
   });
 });
+```
