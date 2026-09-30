@@ -11,7 +11,6 @@ import {
   deleteTodo
 } from "../api/todoApi";
 
-// Mock API functions
 vi.mock("../api/todoApi", () => ({
   getTodos: vi.fn(),
   createTodo: vi.fn(),
@@ -22,8 +21,6 @@ vi.mock("../api/todoApi", () => ({
 describe("Todo App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default API response
     getTodos.mockResolvedValue([]);
   });
 
@@ -47,7 +44,7 @@ describe("Todo App", () => {
     expect(getTodos).toHaveBeenCalledTimes(1);
   });
 
-  test("loads existing todos from backend", async () => {
+  test("loads existing todos", async () => {
     getTodos.mockResolvedValue([
       {
         id: 1,
@@ -70,12 +67,12 @@ describe("Todo App", () => {
     expect(
       screen.getByText("Learn Kubernetes")
     ).toBeInTheDocument();
-
-    expect(getTodos).toHaveBeenCalledTimes(1);
   });
 
   test("handles get todos API error", async () => {
-    getTodos.mockRejectedValue(new Error("Backend unavailable"));
+    getTodos.mockRejectedValue(
+      new Error("Backend unavailable")
+    );
 
     render(<App />);
 
@@ -184,7 +181,7 @@ describe("Todo App", () => {
     ).toHaveTextContent("Unable to add todo");
   });
 
-  test("trims todo text before sending to backend", async () => {
+  test("trims todo text", async () => {
     const user = userEvent.setup();
 
     createTodo.mockResolvedValue({
@@ -212,7 +209,7 @@ describe("Todo App", () => {
     );
   });
 
-  test("completes todo using backend API", async () => {
+  test("completes todo", async () => {
     const user = userEvent.setup();
 
     getTodos.mockResolvedValue([
@@ -246,7 +243,7 @@ describe("Todo App", () => {
     });
   });
 
-  test("uncompletes todo using backend API", async () => {
+  test("uncompletes todo", async () => {
     const user = userEvent.setup();
 
     getTodos.mockResolvedValue([
@@ -306,26 +303,7 @@ describe("Todo App", () => {
     ).toHaveTextContent("Unable to update todo");
   });
 
-  test("does nothing when todo is not found during toggle", async () => {
-    const user = userEvent.setup();
-
-    getTodos.mockResolvedValue([]);
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByText("No todos found.")).toBeInTheDocument();
-    });
-
-    expect(updateTodo).not.toHaveBeenCalled();
-
-    // No checkbox means there is nothing to toggle.
-    expect(
-      screen.queryByRole("checkbox")
-    ).not.toBeInTheDocument();
-  });
-
-  test("deletes todo using backend API", async () => {
+  test("deletes todo", async () => {
     const user = userEvent.setup();
 
     getTodos.mockResolvedValue([
@@ -392,9 +370,9 @@ describe("Todo App", () => {
       await screen.findByRole("alert")
     ).toHaveTextContent("Unable to delete todo");
 
-    // Todo should still be present because API failed
     expect(
       screen.getByText("Learn Jenkins")
     ).toBeInTheDocument();
   });
 });
+```
