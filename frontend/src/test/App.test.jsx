@@ -26,10 +26,14 @@ describe("Todo App", () => {
   test("renders application", async () => {
     render(<App />);
 
-    expect(screen.getByText("Loading todos...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Loading todos...")
+    ).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     expect(
@@ -42,14 +46,19 @@ describe("Todo App", () => {
 
     expect(getTodos).toHaveBeenCalledTimes(1);
   });
+
   test("does not show error alert when there is no error", async () => {
-  render(<App />);
+    render(<App />);
 
-  await waitFor(() => {
-    expect(screen.getByText("Todo App")).toBeInTheDocument();
-  });
+    await waitFor(() => {
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
+    });
 
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();  
+    expect(
+      screen.queryByRole("alert")
+    ).not.toBeInTheDocument();
   });
 
   test("loads existing todos", async () => {
@@ -95,7 +104,9 @@ describe("Todo App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     await user.click(
@@ -115,7 +126,9 @@ describe("Todo App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByLabelText("todo input");
@@ -145,7 +158,9 @@ describe("Todo App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByLabelText("todo input");
@@ -160,7 +175,9 @@ describe("Todo App", () => {
       await screen.findByText("Learn Docker")
     ).toBeInTheDocument();
 
-    expect(createTodo).toHaveBeenCalledWith("Learn Docker");
+    expect(createTodo).toHaveBeenCalledWith(
+      "Learn Docker"
+    );
   });
 
   test("handles create todo API error", async () => {
@@ -173,7 +190,9 @@ describe("Todo App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByLabelText("todo input");
@@ -201,12 +220,17 @@ describe("Todo App", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(
+        screen.getByText("Todo App")
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByLabelText("todo input");
 
-    await user.type(input, "  Learn Kubernetes  ");
+    await user.type(
+      input,
+      "  Learn Kubernetes  "
+    );
 
     await user.click(
       screen.getByRole("button", { name: "Add" })
@@ -236,7 +260,8 @@ describe("Todo App", () => {
 
     render(<App />);
 
-    const checkbox = await screen.findByRole("checkbox");
+    const checkbox =
+      await screen.findByRole("checkbox");
 
     expect(checkbox).not.toBeChecked();
 
@@ -270,7 +295,8 @@ describe("Todo App", () => {
 
     render(<App />);
 
-    const checkbox = await screen.findByRole("checkbox");
+    const checkbox =
+      await screen.findByRole("checkbox");
 
     expect(checkbox).toBeChecked();
 
@@ -302,13 +328,16 @@ describe("Todo App", () => {
 
     render(<App />);
 
-    const checkbox = await screen.findByRole("checkbox");
+    const checkbox =
+      await screen.findByRole("checkbox");
 
     await user.click(checkbox);
 
     expect(
       await screen.findByRole("alert")
-    ).toHaveTextContent("Unable to update todo");
+    ).toHaveTextContent(
+      "Unable to update todo"
+    );
   });
 
   test("deletes todo", async () => {
@@ -376,7 +405,9 @@ describe("Todo App", () => {
 
     expect(
       await screen.findByRole("alert")
-    ).toHaveTextContent("Unable to delete todo");
+    ).toHaveTextContent(
+      "Unable to delete todo"
+    );
 
     expect(
       screen.getByText("Learn Jenkins")
