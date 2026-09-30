@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -21,7 +20,8 @@ export default defineConfig({
 
       exclude: [
         "src/main.jsx",
-        "src/api/todoApi.js"
+        "src/api/todoApi.js",
+        "vite.config.js"
       ],
 
       thresholds: {
