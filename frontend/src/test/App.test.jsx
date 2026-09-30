@@ -398,4 +398,3 @@ describe("Todo App", () => {
     ).toBeInTheDocument();
   });
 });
-```
