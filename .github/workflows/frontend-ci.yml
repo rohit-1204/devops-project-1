@@ -1,4 +1,4 @@
-name: Frontend CI/CD
+name: ToDos App Frontend CI/CD
 
 on:
   push:
