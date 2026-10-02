@@ -1,10 +1,20 @@
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
 variable "project_name" {
   description = "Project name"
   type        = string
 }
 
 variable "environment" {
-  description = "Environment name"
+  description = "Environment"
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR"
   type        = string
 }
 
@@ -19,26 +29,26 @@ variable "node_instance_types" {
 }
 
 variable "node_min_size" {
-  description = "Minimum number of nodes"
+  description = "Minimum EKS nodes"
   type        = number
 }
 
 variable "node_max_size" {
-  description = "Maximum number of nodes"
+  description = "Maximum EKS nodes"
   type        = number
 }
 
 variable "node_desired_size" {
-  description = "Desired number of nodes"
+  description = "Desired EKS nodes"
   type        = number
 }
 
-variable "vpc_id" {
-  description = "VPC ID"
+variable "jenkins_key_name" {
+  description = "EC2 key pair name for Jenkins"
   type        = string
 }
 
-variable "private_subnet_ids" {
-  description = "Private subnet IDs"
-  type        = list(string)
+variable "admin_cidr" {
+  description = "CIDR allowed to access Jenkins"
+  type        = string
 }
