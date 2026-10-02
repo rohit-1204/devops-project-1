@@ -5,4 +5,5 @@ jenkins:
 
   mode: NORMAL
 
-  disableRememberMe: false
+jobs:
+  - file: /var/lib/jenkins/jobs/jobs.groovy
