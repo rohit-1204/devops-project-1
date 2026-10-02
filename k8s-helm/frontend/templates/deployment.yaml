@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: {{ include "frontend.fullname" . }}
   labels:
     app: frontend
+
 spec:
   replicas: {{ .Values.replicaCount }}
 
@@ -26,7 +28,7 @@ spec:
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
 
       securityContext:
-        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsNonRoot: true
 
       containers:
         - name: frontend
@@ -39,7 +41,10 @@ spec:
             - containerPort: {{ .Values.containerPort }}
 
           securityContext:
-            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
