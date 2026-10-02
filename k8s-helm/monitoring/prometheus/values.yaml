@@ -1,0 +1,41 @@
+prometheus:
+
+  prometheusSpec:
+
+    retention: 15d
+
+    resources:
+
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+      limits:
+        cpu: 1
+        memory: 2Gi
+
+grafana:
+
+  enabled: true
+
+  adminPassword: CHANGE_ME
+
+  persistence:
+    enabled: true
+    size: 10Gi
+
+alertmanager:
+
+  enabled: true
+
+  alertmanagerSpec:
+
+    resources:
+
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+      limits:
+        cpu: 250m
+        memory: 256Mi

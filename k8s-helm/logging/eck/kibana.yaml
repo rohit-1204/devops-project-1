@@ -1,0 +1,33 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+
+metadata:
+  name: todo-kibana
+  namespace: logging
+
+spec:
+
+  version: 9.1.0
+
+  count: 2
+
+  elasticsearchRef:
+    name: todo-logs
+
+  podTemplate:
+
+    spec:
+
+      containers:
+
+        - name: kibana
+
+          resources:
+
+            requests:
+              cpu: 250m
+              memory: 512Mi
+
+            limits:
+              cpu: 1
+              memory: 1Gi

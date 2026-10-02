@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: logstash-pipeline
+  namespace: logging
+
+data:
+
+  logstash.conf: |
+
+    input {
+      beats {
+        port => 5044
+      }
+    }
+
+    filter {
+
+      if [kubernetes][container][name] == "backend" {
+
+        mutate {
+          add_field => {
+            "application" => "todo-backend"
+          }
+        }
+
+      }
+
+      if [kubernetes][container][name] == "frontend" {
+
+        mutate {
+          add_field => {
+            "application" => "todo-frontend"
+          }
+        }
+
+      }
+
+    }
+
+    output {
+
+      elasticsearch {
+
+        hosts => [
+          "https://todo-logs-es-http.logging.svc:9200"
+        ]
+
+        index => "todo-logs-%{+YYYY.MM.dd}"
+
+        user => "${ELASTIC_USER}"
+        password => "${ELASTIC_PASSWORD}"
+
+        ssl_certificate_verification => false
+      }
+
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: logstash
+  namespace: logging
+
+spec:
+
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: logstash
+
+  template:
+
+    metadata:
+      labels:
+        app: logstash
+
+    spec:
+
+      containers:
+
+        - name: logstash
+
+          image: docker.elastic.co/logstash/logstash:9.1.0
+
+          ports:
+            - containerPort: 5044
+
+          volumeMounts:
+
+            - name: pipeline
+              mountPath: /usr/share/logstash/pipeline
+
+      volumes:
+
+        - name: pipeline
+
+          configMap:
+            name: logstash-pipeline
+
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: logstash
+  namespace: logging
+
+spec:
+
+  selector:
+    app: logstash
+
+  ports:
+
+    - port: 5044
+      targetPort: 5044

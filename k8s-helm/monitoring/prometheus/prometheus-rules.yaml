@@ -1,0 +1,63 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+
+metadata:
+  name: todo-app-alerts
+  namespace: monitoring
+
+spec:
+
+  groups:
+
+    - name: todo-app.rules
+
+      rules:
+
+        - alert: PodHighCPU
+
+          expr:
+            sum by (pod) (
+              rate(container_cpu_usage_seconds_total{
+                container!="",
+                pod!=""
+              }[5m])
+            ) > 0.8
+
+          for: 5m
+
+          labels:
+            severity: warning
+
+          annotations:
+            summary: "Pod CPU usage is high"
+            description: "Pod {{ $labels.pod }} CPU usage is above threshold."
+
+        - alert: PodRestarting
+
+          expr:
+            increase(kube_pod_container_status_restarts_total[10m]) > 3
+
+          for: 5m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "Pod restarting frequently"
+            description: "Pod {{ $labels.pod }} restarted multiple times."
+
+        - alert: PodNotReady
+
+          expr:
+            kube_pod_status_ready{
+              condition="false"
+            } == 1
+
+          for: 10m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "Pod is not ready"
+            description: "Pod {{ $labels.pod }} is not ready."

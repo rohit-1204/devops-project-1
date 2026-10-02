@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  repository: "YOUR_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/todo-frontend"
+  tag: "dev"
+
+ingress:
+  host: "dev.example.com"
+
+config:
+  backendUrl: "http://backend.dev.svc.cluster.local"

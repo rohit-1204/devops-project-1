@@ -1,0 +1,8 @@
+replicaCount: 1
+
+image:
+  repository: "YOUR_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/todo-backend"
+  tag: "dev"
+
+config:
+  environment: development

@@ -1,0 +1,41 @@
+replicaCount: 2
+
+image:
+  repository: ""
+  tag: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+containerPort: 8000
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  cpuUtilization: 70
+  memoryUtilization: 80
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+serviceAccount:
+  create: true
+  name: ""
+
+config:
+  environment: production
+
+ingress:
+  enabled: false
