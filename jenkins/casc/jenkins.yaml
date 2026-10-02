@@ -1,1 +1,8 @@
-jenkins.yaml
+jenkins:
+  systemMessage: "DevOps Project Jenkins - Managed by JCasC"
+
+  numExecutors: 2
+
+  mode: NORMAL
+
+  disableRememberMe: false
