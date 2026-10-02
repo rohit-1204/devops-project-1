@@ -1,1 +1,54 @@
-jobs.groovey
+pipelineJob("devops-project-1-frontend") {
+
+    description("Frontend CI/CD Pipeline - Managed as Code")
+
+    definition {
+        cpsScm {
+            scm {
+                git {
+                    remote {
+                        url("https://github.com/rohit-1204/devops-project-1.git")
+                    }
+
+                    branch("*/master")
+                }
+            }
+
+            scriptPath("jenkins/Jenkinsfile.frontend")
+
+            lightweight()
+        }
+    }
+
+    triggers {
+        githubPush()
+    }
+}
+
+
+pipelineJob("devops-project-1-backend") {
+
+    description("Backend CI/CD Pipeline - Managed as Code")
+
+    definition {
+        cpsScm {
+            scm {
+                git {
+                    remote {
+                        url("https://github.com/rohit-1204/devops-project-1.git")
+                    }
+
+                    branch("*/master")
+                }
+            }
+
+            scriptPath("jenkins/Jenkinsfile.backend")
+
+            lightweight()
+        }
+    }
+
+    triggers {
+        githubPush()
+    }
+}
