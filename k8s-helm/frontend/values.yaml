@@ -1,8 +1,8 @@
 replicaCount: 2
 
 image:
-  repository: ""
-  tag: ""
+  repository: "rohitpathare1204/todo-frontend"
+  tag: "dev"
 
 service:
   type: ClusterIP
