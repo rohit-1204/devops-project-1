@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: "YOUR_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/todo-frontend"
+  repository: "rohitpathare1204/todo-frontend"
   tag: "dev"
 
 ingress:
